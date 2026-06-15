@@ -19,6 +19,9 @@ export default function App() {
   const [isLocked, setIsLocked] = useState(false);
   const [trapData, setTrapData] = useState(null);
   const [justification, setJustification] = useState("");
+  
+  // NEW: State to track which alternative option trap is toggled open
+  const [activeBlueprintTab, setActiveBlueprintTab] = useState(null);
 
   // Score Tracking
   const [score, setScore] = useState(0);
@@ -92,7 +95,7 @@ export default function App() {
     }
 
     try {
-      const { error } = await supabase.from("user_error_logs").insert([
+      await supabase.from("user_error_logs").insert([
         {
           question_id: questions[currentIdx].id,
           micro_topic_id: questions[currentIdx].micro_topic_id,
@@ -100,7 +103,6 @@ export default function App() {
           user_rule: justification,
         },
       ]);
-      if (error) console.error("Error saving your rule:", error);
     } catch (err) {
       console.error("Network error while saving:", err);
     }
@@ -109,12 +111,14 @@ export default function App() {
     setIsAnswered(true);
     setTrapData(null);
     setJustification("");
+    setActiveBlueprintTab(null); // Reset toggle state
   };
 
   const handleNext = () => {
     setSelectedOption(null);
     setIsAnswered(false);
     setCurrentIdx((prev) => prev + 1);
+    setActiveBlueprintTab(null); // Reset toggle state
   };
 
   // UI: Loading Screen
@@ -234,16 +238,16 @@ export default function App() {
         </div>
       )}
 
-      {/* THE INLINE LOCKDOWN INTERCEPTOR (ALL-ROUNDED TRAP ARCHITECTURE) */}
+      {/* THE UPGRADED 4-STEP INLINE LOCKDOWN INTERCEPTOR */}
       {isLocked && trapData && (
         <div style={{ marginTop: '30px', padding: '25px', borderRadius: '8px', border: '3px solid red', background: '#fff', boxShadow: '0 4px 12px rgba(255,0,0,0.15)' }}>
-          <h2 style={{ color: 'red', marginTop: 0, fontSize: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <h2 style={{ color: 'red', marginTop: 0, fontSize: '20px', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
             ⚠️ CRITICAL LOGIC ERROR DETECTED
           </h2>
           
-          {/* 1. THE TRAP YOU FELL INTO */}
+          {/* ANALYSIS 1: THE TRIGGERED TRAP (MICRO VIEW) */}
           <div style={{ background: '#fff5f5', padding: '15px', borderRadius: '6px', borderLeft: '4px solid red', marginBottom: '15px' }}>
-            <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#c62828', display: 'block', marginBottom: '5px', textTransform: 'uppercase' }}>🚨 Triggered Trap</span>
+            <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#c62828', display: 'block', marginBottom: '5px', textTransform: 'uppercase' }}>🚨 Your Triggered Trap</span>
             <p style={{ fontSize: '15px', color: '#333', lineHeight: '1.5', margin: 0 }}>
               {currentQuestion.option_traps && currentQuestion.option_traps[selectedOption] 
                 ? currentQuestion.option_traps[selectedOption]
@@ -251,41 +255,61 @@ export default function App() {
             </p>
           </div>
 
-          {/* 2. THE EXAMINER'S FULL BLUEPRINT (OTHER HIDDEN TRAPS) */}
+          {/* ANALYSIS 2: THE OVERARCHING DESIGN (MACRO VIEW) */}
+          <div style={{ background: '#f0f4f8', padding: '15px', borderRadius: '6px', borderLeft: '4px solid #1976d2', marginBottom: '15px' }}>
+            <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#1565c0', display: 'block', marginBottom: '5px', textTransform: 'uppercase' }}>📐 Question Design Blueprint</span>
+            <p style={{ fontSize: '14px', color: '#333', lineHeight: '1.5', margin: 0 }}>
+              {currentQuestion.trap_explanation}
+            </p>
+          </div>
+
+          {/* ANALYSIS 3: THE EXAMINER'S BLUEPRINT WITH PROGRESSIVE disclosure */}
           <div style={{ background: '#f5f7fa', padding: '15px', borderRadius: '6px', borderLeft: '4px solid #455a64', marginBottom: '20px' }}>
-            <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#455a64', display: 'block', marginBottom: '10px', textTransform: 'uppercase' }}>
-              🔍 The Examiner's Full Blueprint (Other Hidden Traps)
+            <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#455a64', display: 'block', marginBottom: '12px', textTransform: 'uppercase' }}>
+              🔍 Explore Alternative Distractor Traps
             </span>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {currentQuestion.options && Object.entries(currentQuestion.options).map(([key, value]) => {
                 if (key === currentQuestion.correct_answer) return null;
-                const isTriggered = selectedOption === key;
+                
+                const isCurrentTabOpen = activeBlueprintTab === key;
                 
                 return (
-                  <div key={key} style={{ fontSize: '13px', color: '#555', padding: '8px', borderRadius: '4px', background: isTriggered ? '#ffebee' : '#fff', border: isTriggered ? '1px solid #ef5350' : '1px solid #e0e0e0' }}>
-                    <strong>Option {key}:</strong> {value}
-                    <div style={{ color: isTriggered ? '#b71c1c' : '#616161', marginTop: '4px', fontStyle: 'italic', paddingLeft: '10px' }}>
-                      ↳ {currentQuestion.option_traps && currentQuestion.option_traps[key] 
-                          ? currentQuestion.option_traps[key] 
-                          : isTriggered ? "You fell for this structural manipulation." : "Alternative distractor built to capture superficial conceptual understanding."}
+                  <div key={key} style={{ background: '#fff', border: '1px solid #e0e0e0', borderRadius: '4px', overflow: 'hidden' }}>
+                    <div 
+                      onClick={() => setActiveBlueprintTab(isCurrentTabOpen ? null : key)}
+                      style={{ padding: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', background: selectedOption === key ? '#ffebee' : '#fff', fontSize: '13px' }}
+                    >
+                      <span><strong>Option {key}:</strong> {value.length > 45 ? value.substring(0, 45) + "..." : value}</span>
+                      <span style={{ fontSize: '11px', color: '#1976d2', fontWeight: 'bold' }}>
+                        {isCurrentTabOpen ? "Collapse ▴" : "View Trap Details ▾"}
+                      </span>
                     </div>
+                    
+                    {isCurrentTabOpen && (
+                      <div style={{ padding: '12px', background: '#fafafa', borderTop: '1px solid #eee', fontSize: '13px', color: '#555', lineHeight: '1.4', fontStyle: 'italic' }}>
+                        {currentQuestion.option_traps && currentQuestion.option_traps[key] 
+                          ? currentQuestion.option_traps[key] 
+                          : "Alternative distractor built to divert attention by leveraging structural familiarity."}
+                      </div>
+                    )}
                   </div>
                 );
               })}
             </div>
           </div>
 
-          {/* 3. SIDE-BY-SIDE REVEAL */}
+          {/* ANALYSIS 4: REALITY REVEAL PANEL */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
             <div style={{ padding: '10px', background: '#ffebee', border: '1px solid #ef5350', borderRadius: '4px', fontSize: '14px', color: '#c62828' }}>
-              ❌ <strong>You selected:</strong> Option {selectedOption} - {currentQuestion.options && currentQuestion.options[selectedOption]}
+              ❌ <strong>Your Selection:</strong> Option {selectedOption} - {currentQuestion.options && currentQuestion.options[selectedOption]}
             </div>
             <div style={{ padding: '10px', background: '#e8f5e9', border: '1px solid #4caf50', borderRadius: '4px', fontSize: '14px', color: '#2e7d32' }}>
-              ✅ <strong>Correct Answer:</strong> Option {currentQuestion.correct_answer} - {currentQuestion.options && currentQuestion.options[currentQuestion.correct_answer]}
+              ✅ <strong>Correct Matrix Target:</strong> Option {currentQuestion.correct_answer} - {currentQuestion.options && currentQuestion.options[currentQuestion.correct_answer]}
             </div>
           </div>
 
-          {/* 4. THE DECONSTRUCTION FORM */}
+          {/* DECONSTRUCTION INPUT */}
           <form onSubmit={handleUnlock} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
             <label style={{ fontWeight: "bold", fontSize: "14px", color: "#333" }}>
               Deconstruct the trap network to unlock the interface:
