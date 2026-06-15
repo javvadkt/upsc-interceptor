@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
 
 // 1. Initialize Supabase Connection (PASTE YOUR KEYS HERE)
-SUPABASE_URL = "https://zivoqvmjjguvtgvrdorx.supabase.co";
-SUPABASE_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inppdm9xdm1qamd1dnRndnJkb3J4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MTQ0MDQ5NCwiZXhwIjoyMDk3MDE2NDk0fQ.wfl_fJD5QCVdJxgz6DVC5gdG_KLKaldtg_uKW6OSZ70";
+// Look at the secure Vercel environment instead of hardcoded text
+const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
+const SUPABASE_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY;
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 export default function App() {
   // Database & Mode State
