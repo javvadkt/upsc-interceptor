@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
 
 // 1. Initialize Supabase Connection
-const SUPABASE_URL = "https://zivoqvmjjguvtgvrdorx.supabase.co";
+const SUPABASE_URL = "[https://zivoqvmjjguvtgvrdorx.supabase.co](https://zivoqvmjjguvtgvrdorx.supabase.co)";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inppdm9xdm1qamd1dnRndnJkb3J4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MTQ0MDQ5NCwiZXhwIjoyMDk3MDE2NDk0fQ.wfl_fJD5QCVdJxgz6DVC5gdG_KLKaldtg_uKW6OSZ70";
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -20,8 +20,9 @@ export default function App() {
   const [trapData, setTrapData] = useState(null);
   const [justification, setJustification] = useState("");
   
-  // NEW: State to track which alternative option trap is toggled open
+  // Interactive UI Toggles
   const [activeBlueprintTab, setActiveBlueprintTab] = useState(null);
+  const [showHint, setShowHint] = useState(false); // NEW: Controls key hint visibility
 
   // Score Tracking
   const [score, setScore] = useState(0);
@@ -111,14 +112,16 @@ export default function App() {
     setIsAnswered(true);
     setTrapData(null);
     setJustification("");
-    setActiveBlueprintTab(null); // Reset toggle state
+    setActiveBlueprintTab(null); 
+    setShowHint(false);
   };
 
   const handleNext = () => {
     setSelectedOption(null);
     setIsAnswered(false);
     setCurrentIdx((prev) => prev + 1);
-    setActiveBlueprintTab(null); // Reset toggle state
+    setActiveBlueprintTab(null); 
+    setShowHint(false); // Reset hint state for the next item
   };
 
   // UI: Loading Screen
@@ -126,7 +129,7 @@ export default function App() {
     return (
       <div style={{ textAlign: "center", marginTop: "100px", fontFamily: "sans-serif" }}>
         <h2>Connecting to Neural Engine...</h2>
-        <p>Loading 2023 Predictive Dataset...</p>
+        <p>Loading Predictive Dataset...</p>
       </div>
     );
   }
@@ -211,11 +214,28 @@ export default function App() {
 
       {/* Main Question Block */}
       <div>
-        <p style={{ fontSize: "16px", lineHeight: "1.6", whiteSpace: "pre-wrap", marginTop: "10px" }}>{currentQuestion.question_text}</p>
+        <p style={{ fontSize: "16px", lineHeight: "1.6", whiteSpace: "pre-wrap", marginTop: "10px", marginBottom: "15px" }}>{currentQuestion.question_text}</p>
       </div>
 
+      {/* INTERACTIVE HINT CORE COMPONENT */}
+      {currentQuestion.key_hint && !isAnswered && !isLocked && (
+        <div style={{ marginBottom: "20px" }}>
+          <button 
+            onClick={() => setShowHint(!showHint)}
+            style={{ background: "none", border: "none", color: "#0288d1", cursor: "pointer", fontSize: "13px", fontWeight: "bold", padding: 0, display: "flex", alignItems: "center", gap: "4px" }}
+          >
+            {showHint ? "🙈 Hide Key Hint" : "💡 Reveal Key Hint"}
+          </button>
+          {showHint && (
+            <div style={{ marginTop: "8px", padding: "12px", background: "#e1f5fe", borderLeft: "4px solid #0288d1", borderRadius: "4px", fontSize: "14px", color: "#01579b", lineHeight: "1.4" }}>
+              <strong>Hint Strategy:</strong> {currentQuestion.key_hint}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Multiple Choice Options */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "20px" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "10px" }}>
         {currentQuestion.options && Object.entries(currentQuestion.options).map(([key, value]) => {
           let buttonStyle = { padding: "12px", textAlign: "left", background: "#fff", border: "1px solid #ccc", borderRadius: "6px", cursor: isLocked || isAnswered ? "not-allowed" : "pointer", fontSize: "15px", width: "100%" };
           if (selectedOption === key) { buttonStyle.border = "2px solid #000"; buttonStyle.background = "#f0f0f0"; }
@@ -229,6 +249,18 @@ export default function App() {
         })}
       </div>
 
+      {/* CORE SCHOLASTIC EXPLANATION VIEWPORT */}
+      {isAnswered && !isLocked && currentQuestion.explanation && (
+        <div style={{ marginTop: "25px", padding: "18px", background: "#f9f9f9", border: "1px solid #e0e0e0", borderRadius: "6px", borderLeft: "4px solid #4caf50" }}>
+          <h4 style={{ margin: "0 0 10px 0", fontSize: "15px", color: "#2e7d32", display: "flex", alignItems: "center", gap: "6px" }}>
+            📖 Comprehensive Academic Explanation
+          </h4>
+          <p style={{ fontSize: "14.5px", color: "#333", lineHeight: "1.6", margin: 0, whiteSpace: "pre-wrap" }}>
+            {currentQuestion.explanation}
+          </p>
+        </div>
+      )}
+
       {/* Bottom Navigation Panel */}
       {isAnswered && !isLocked && (
         <div style={{ marginTop: "20px", textAlign: "right" }}>
@@ -238,7 +270,7 @@ export default function App() {
         </div>
       )}
 
-      {/* THE UPGRADED 4-STEP INLINE LOCKDOWN INTERCEPTOR */}
+      {/* THE 4-STEP INLINE LOCKDOWN INTERCEPTOR */}
       {isLocked && trapData && (
         <div style={{ marginTop: '30px', padding: '25px', borderRadius: '8px', border: '3px solid red', background: '#fff', boxShadow: '0 4px 12px rgba(255,0,0,0.15)' }}>
           <h2 style={{ color: 'red', marginTop: 0, fontSize: '20px', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
@@ -263,7 +295,7 @@ export default function App() {
             </p>
           </div>
 
-          {/* ANALYSIS 3: THE EXAMINER'S BLUEPRINT WITH PROGRESSIVE disclosure */}
+          {/* ANALYSIS 3: THE EXAMINER'S BLUEPRINT WITH PROGRESSIVE DISCLOSURE */}
           <div style={{ background: '#f5f7fa', padding: '15px', borderRadius: '6px', borderLeft: '4px solid #455a64', marginBottom: '20px' }}>
             <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#455a64', display: 'block', marginBottom: '12px', textTransform: 'uppercase' }}>
               🔍 Explore Alternative Distractor Traps
@@ -271,7 +303,6 @@ export default function App() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {currentQuestion.options && Object.entries(currentQuestion.options).map(([key, value]) => {
                 if (key === currentQuestion.correct_answer) return null;
-                
                 const isCurrentTabOpen = activeBlueprintTab === key;
                 
                 return (
